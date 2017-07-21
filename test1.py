@@ -33,26 +33,42 @@ def test_selenium():
 
     #WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable((By.XPATH, './/a/span[text()="Add to shopping cart"]')))
     # add_to_cart = driver.find_element_by_xpath('.//a/span[text()="Add to shopping cart"]')  #[@class="AddToCartLink"]')
-    WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable((By.CLASS_NAME, 'AddToCartLink')))
-    add_to_cart = driver.find_element_by_class_name('AddToCartLink')
-    add_to_cart.click()
+    amount = 0
+    price = 0
+    for i in range (5):
+        WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable((By.CLASS_NAME, 'AddToCartLink')))
+        add_to_cart = driver.find_element_by_class_name('AddToCartLink')
+        add_to_cart.click()
 
-    WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable((By.CLASS_NAME, 'CartMessageBox')))
-    pop_up = driver.find_element_by_class_name('CartMessageBox')
+        WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable((By.CLASS_NAME, 'CartMessageBox')))
+        pop_up = driver.find_element_by_class_name('CartMessageBox')
 
-    assert pop_up.is_displayed()
+        assert pop_up.is_displayed()
 
-    continue_button = driver.find_element_by_xpath('.//img[@src="/medias/sys_master/button_en_primary_cockpit_localized-global-buy-moreHD_mw164.png?1476853411000"]')
-    continue_button.click()
+        continue_button = driver.find_element_by_xpath('.//img[@src="/medias/sys_master/button_en_primary_cockpit_localized-global-buy-moreHD_mw164.png?1476853411000"]')
+        continue_button.click()
+        amount += 1
+        price1 = driver.find_element_by_class_name('PriceCashValue')
+        match_price1 = re.search('\d+', price1.text)
+        price += int(match_price1.group())
 
-    amount = driver.find_element_by_class_name('Quantity')
-    assert int(amount.text) == 1
 
-    price1 = driver.find_element_by_class_name('PriceCashValue')
+    amount_read = driver.find_element_by_class_name('Quantity')
+    assert int(amount_read.text) == amount
+
     price2 = driver.find_element_by_xpath('.//div[@class="Total"]/ol/li[1]/span[@class="Value"]')
-    match_price1 = re.search('\d+', price1.text)
     match_price2 = re.search('\d+', price2.text)
-    assert int(match_price1.group()) == int(match_price2.group())
 
-    
-#test_selenium()
+    assert price == int(match_price2.group())
+
+    basket_button = driver.find_element_by_class_name('ToCartButton')
+    basket_button.click()
+
+    remove_button = driver.find_element_by_xpath('.//a[@class="DeleteAction"]')
+    remove_button.click()
+
+    WebDriverWait(driver, timeout=5).until(EC.invisibility_of_element_located((By.XPATH, './/a[@class="DeleteAction"]')))
+    WebDriverWait(driver, timeout=5).until(EC.element_to_be_clickable((By.XPATH, './/div[@class="CartHeader"]/h1/strong[2]')))
+    amount_article = driver.find_element_by_xpath('.//div[@class="CartHeader"]/h1/strong[2]') #[contains(@class= ...] -> jak wystepuje spacja w nazwie klasy
+
+    assert int(amount_article.text) == 0
